@@ -6,3 +6,4 @@ Steps to install:
 2: Run in your command prompt: 'pip install pyxel'
 3: Go to the Folder in your command prompt and type: 'pyxel run Asteroids.py'
 
+Ver. beta 0.7 uploaded August 15
