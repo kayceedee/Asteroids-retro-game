@@ -1,4 +1,4 @@
-Astroids retro game made from August 12 - 15.
+Astroids retro game made from August 12 - 16.
 
 Steps to install:
 
@@ -7,3 +7,4 @@ Steps to install:
 3: Go to the Folder in your command prompt and type: 'pyxel run Asteroids.py'
 
 Ver. beta 0.7 uploaded August 15
+Ver. 1.0 uploaded August 16
