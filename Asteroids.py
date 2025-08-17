@@ -32,12 +32,78 @@ class Bullet:
         else:
             return False
 
+class Rock:
+    def __init__(self, x, y, hitboxes, removedBig, removedSmall, rockRandom):
+        self.removedSmall = removedSmall
+        self.rockRandom = rockRandom
+        self.removedBig = removedBig
+        self.hitboxes = hitboxes
+        self.x = x
+        self.y = y
+
+    def minMax(self, num, leftUp):
+        if leftUp == True:
+            return max(num, 0)
+        else:
+            return min(num, 190)
+
+    def placeBigRocks(self):
+        if [self.x, self.y] in self.removedBig:
+            self.placeSmallRocks()
+            return
+
+        if self.rockRandom[self.x] <= 5: #randomly pick from four big rocks
+            pyxel.blt(self.x, self.y, 0, 1, 17, 37, 31, 7)
+        elif self.rockRandom[self.x] <= 10:
+            pyxel.blt(self.x, self.y, 0, 2, 50, 36, 31, 7)
+        elif self.rockRandom[self.x] <= 15:
+            pyxel.blt(self.x, self.y, 0, 57, 17, 40, 31, 7)
+        else:
+            pyxel.blt(self.x, self.y, 0, 58, 50, 40, 31, 7)
+
+        self.makeHitboxes(self.x, self.y, False)
+
+    def placeSmallRocks(self):
+        rock1 = [self.minMax(self.x+self.rockRandom[self.x], False), self.minMax(self.y-self.rockRandom[self.x+1], True)]
+        rock2 = [self.minMax(self.x-self.rockRandom[self.x+2], True), self.minMax(self.y+self.rockRandom[self.x+3], False)]
+        for rock in [rock1, rock2]:
+            if rock[0] >= 76 and rock[0] <= 108 and rock[1] >= 76 and rock[1] <= 108: #not spawn in the player area
+                rock[1] -= 30
+            if [rock[0], rock[1]] not in self.removedSmall:
+                if self.rockRandom[rock[0]] <= 4: #randomly pick from five small rocks
+                    pyxel.blt(rock[0], rock[1], 0, 48, 0, 16, 16, 7)
+                elif self.rockRandom[rock[0]] <= 8:
+                    pyxel.blt(rock[0], rock[1], 0, 32, 0, 16, 16, 7)
+                elif self.rockRandom[rock[0]] <= 12:
+                    pyxel.blt(rock[0], rock[1], 0, 64, 0, 16, 16, 7)
+                elif self.rockRandom[rock[0]] <= 16:
+                    pyxel.blt(rock[0], rock[1], 0, 80, 0, 16, 16, 7)
+                else:
+                    pyxel.blt(rock[0], rock[1], 0, 96, 0, 16, 16, 7)
+
+                self.makeHitboxes(rock[0], rock[1], True)
+
+
+    def makeHitboxes(self, x, y, small):
+        hitboxEnds = []
+
+        if small == False:
+            hitboxEnds.append(x + 4) #hitbox
+            hitboxEnds.append(x + 35)
+            hitboxEnds.append(y - 2)
+            hitboxEnds.append(y + 27)
+        else:
+            hitboxEnds.append(x - 2) #hitbox
+            hitboxEnds.append(x + 14)
+            hitboxEnds.append(y)
+            hitboxEnds.append(y + 14)
+
+        if hitboxEnds not in self.hitboxes:
+            self.hitboxes.append(hitboxEnds)
 
 class App: #the whole app
     def __init__(self): #begening
-        self.rockRandom = [] #makes game random with random nums on x
-        for pixel in range(201):
-            self.rockRandom.append(random.randint(1, 20))
+        self.rockRandom = [random.randint(1, 20) for x in range(201)]
         self.screen = 200 #screen size
         pyxel.init(self.screen, self.screen, 'Asteroids') #make screen'
         pyxel.fullscreen(True)
@@ -53,12 +119,12 @@ class App: #the whole app
         self.hitboxes = [] #all rock hitboxes
         self.score = 0 #keeps track or player's score
         self.showHitboxesToggle = False #keeps track of if hitboxes are on
-        self.removedBig = [] #all the removed rocks
-        self.removedSmall = []
         self.startScreen = True #true if youre at the start screen
         self.leaderboardScreen = False #true if youre at the leaderboard
         self.deadScreen = False #true when you win
         self.causeOfDeath = 'Unknown'
+        self.removedBig = []
+        self.removedSmall = []
         self.lives = 3
         self.timer = False
         self.time = 0
@@ -82,55 +148,13 @@ class App: #the whole app
         pyxel.load('Sprites.pyxres') #load the sprites
         pyxel.run(self.update, self.draw) #start game
 
-    def genRock(self, x, y, small): #add a rock and its hitbox
 
-        if [x, y] in self.removedBig:
-            self.placeSmallRocks(x, y)
-            return
 
-        hitboxEnds = []
-
-        if small == False:
-            if self.rockRandom[x] <= 5: #randomly pick from four big rocks
-                pyxel.blt(x, y, 0, 1, 17, 37, 31, 7)
-            elif self.rockRandom[x] <= 10:
-                pyxel.blt(x, y, 0, 2, 50, 36, 31, 7)
-            elif self.rockRandom[x] <= 15:
-                pyxel.blt(x, y, 0, 57, 17, 40, 31, 7)
-            else:
-                pyxel.blt(x, y, 0, 58, 50, 40, 31, 7)
-
-            hitboxEnds.append(x + 4) #hitbox
-            hitboxEnds.append(x + 35)
-            hitboxEnds.append(y - 2)
-            hitboxEnds.append(y + 27)
-        else:
-            if self.rockRandom[x] <= 4: #randomly pick from five small rocks
-                pyxel.blt(x, y, 0, 48, 0, 16, 16, 7)
-            elif self.rockRandom[x] <= 8:
-                pyxel.blt(x, y, 0, 32, 0, 16, 16, 7)
-            elif self.rockRandom[x] <= 12:
-                pyxel.blt(x, y, 0, 64, 0, 16, 16, 7)
-            elif self.rockRandom[x] <= 16:
-                pyxel.blt(x, y, 0, 80, 0, 16, 16, 7)
-            else:
-                pyxel.blt(x, y, 0, 96, 0, 16, 16, 7)
-
-            hitboxEnds.append(x - 2) #hitbox
-            hitboxEnds.append(x + 14)
-            hitboxEnds.append(y)
-            hitboxEnds.append(y + 14)
-
-        if hitboxEnds not in self.hitboxes: #so you cant spam hitboxes and lag
-            self.hitboxes.append(hitboxEnds[:])
-            hitboxEnds = []
-
-    def placeRocks(self, x, y):
-        if x == -1 and y == -1:
-            self.genRock(self.quarters[0], self.quarters[1], False)
-            self.genRock(self.quarters[2], self.quarters[3], False)
-            self.genRock(self.quarters[4], self.quarters[5], False)
-            self.genRock(self.quarters[6], self.quarters[7], False)
+    def placeRocks(self):
+        rock1 = Rock(self.quarters[0], self.quarters[1], self.hitboxes, self.removedBig, self.removedSmall, self.rockRandom); rock1.placeBigRocks()
+        rock2 = Rock(self.quarters[2], self.quarters[3], self.hitboxes, self.removedBig, self.removedSmall, self.rockRandom); rock2.placeBigRocks()
+        rock3 = Rock(self.quarters[4], self.quarters[5], self.hitboxes, self.removedBig, self.removedSmall, self.rockRandom); rock3.placeBigRocks()
+        rock4 = Rock(self.quarters[6], self.quarters[7], self.hitboxes, self.removedBig, self.removedSmall, self.rockRandom); rock4.placeBigRocks()
 
     def checkRocks(self):
         for hitbox in self.hitboxes[:]: #check all hitboxes
@@ -161,26 +185,10 @@ class App: #the whole app
                         self.flipY = 16
                         self.livesCooldown = 75
                         self.WSAD = 'none'
-    def placeSmallRocks(self, x, y):
-        rock1 = [self.minMax(x+self.rockRandom[x], False), self.minMax(y-self.rockRandom[x+1], True)]
-        rock2 = [self.minMax(x-self.rockRandom[x+2], True), self.minMax(y+self.rockRandom[x+3], False)]
-        for rock in [rock1, rock2]:
-            if rock[0] >= 76 and rock[0] <= 108 and rock[1] >= 76 and rock[1] <= 108: #not spawn in the player area
-                rock[1] -= 30
-        if rock1 not in self.removedSmall:
-            self.genRock(rock1[0], rock1[1], True)
-        if rock2 not in self.removedSmall:
-            self.genRock(rock2[0], rock2[1], True)
 
     def showHitboxes(self):
         for hitbox in self.hitboxes:
             pyxel.rectb(hitbox[0], hitbox[2], hitbox[1]-hitbox[0], hitbox[3]-hitbox[2], 8)
-
-    def minMax(self, num, leftUp):
-        if leftUp == True:
-            return max(num, 0)
-        else:
-            return min(num, 190)
 
     def restart(self): #restarts the game for a new level
         self.level += 1
@@ -281,6 +289,7 @@ class App: #the whole app
 
 
         if pyxel.btnp(pyxel.KEY_W): #WSAD controls, flips player and modifys wsad to alert 186
+            self.y -= self.speed
             self.flipX = 16
             self.flipY = 16
             self.cornerX = 0
@@ -288,6 +297,7 @@ class App: #the whole app
                 self.timer = True
             self.WSAD = 'W'
         elif pyxel.btnp(pyxel.KEY_S):
+            self.y += self.speed
             self.flipX = 16
             self.flipY = -16
             self.cornerX = 0
@@ -295,6 +305,7 @@ class App: #the whole app
                 self.timer = True
             self.WSAD = 'S'
         elif pyxel.btnp(pyxel.KEY_A):
+            self.x -= self.speed
             self.flipX = -16
             self.flipY = 16
             self.cornerX = 16
@@ -302,6 +313,7 @@ class App: #the whole app
                 self.timer = True
             self.WSAD = 'A'
         elif pyxel.btnp(pyxel.KEY_D):
+            self.x += self.speed
             self.flipX = 16
             self.flipY = 16
             self.cornerX = 16
@@ -393,7 +405,7 @@ class App: #the whole app
             pyxel.text(self.screen/2-len(text3)*4/2, 145, text3, 5)
             return
 
-        self.placeRocks(-1, -1) #place origanal rocks
+        self.placeRocks() #place origanal rocks
 
 
         for bullet in self.bullets[:]: #move bullet based on players oriantation
@@ -402,7 +414,6 @@ class App: #the whole app
             else:
                 bullet.update()
                 bullet.draw()
-            print(self.bullets)
 
         if self.showHitboxesToggle: #draws hitboxes if q was pressed, recever end of 219
             self.showHitboxes()
@@ -435,4 +446,3 @@ class App: #the whole app
             pyxel.blt(185, 2, 0, 41, 60, 13, 12)
 
 App() #starts the game
-
