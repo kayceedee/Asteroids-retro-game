@@ -33,13 +33,67 @@ class Bullet:
             return False
 
 class Rock:
-    def __init__(self, x, y, hitboxes, removedBig, removedSmall, rockRandom):
+    def __init__(self, x, y, hitboxes, removedBig, removedSmall, rockRandom, explosionStart):
         self.removedSmall = removedSmall
         self.rockRandom = rockRandom
         self.removedBig = removedBig
         self.hitboxes = hitboxes
+        self.explosionStart = explosionStart
         self.x = x
         self.y = y
+
+    def playSound(self):
+        pygame.init()
+        pygame.mixer.init()
+        pygame.mixer.music.load('kaboom.wav')
+        pygame.mixer.music.play()
+
+        pygame.time.delay(1000)
+
+        pygame.quit()
+
+    def explosion(self):
+        for explosion in self.explosionStart[:]:
+            frames = pyxel.frame_count - explosion[2]
+            if explosion[3] == True:
+                if frames <= 17:
+                    if frames <= 2:
+                        pyxel.blt(explosion[0], explosion[1], 0, 0, 176, 9, 9)
+                    elif frames <= 4:
+                        pyxel.blt(explosion[0], explosion[1], 0, 10, 137, 9, 9)
+                    elif frames <= 6:
+                        pyxel.blt(explosion[0], explosion[1], 0, 20, 136, 14, 16)
+                    elif frames <= 8:
+                        pyxel.blt(explosion[0], explosion[1], 0, 36, 136, 14, 16)
+                    elif frames <= 10:
+                        pyxel.blt(explosion[0], explosion[1], 0, 57, 136, 20, 18)
+                    elif frames <= 12:
+                        pyxel.blt(explosion[0], explosion[1], 0, 5, 156, 25, 24)
+                    elif frames <= 14:
+                        pyxel.blt(explosion[0], explosion[1], 0, 37, 156, 25, 24)
+                    elif frames <= 16:
+                        pyxel.blt(explosion[0], explosion[1], 0, 10, 194, 16, 16)
+                    elif frames == 17:
+                        self.explosionStart.remove(explosion)
+            else:
+                if frames <= 15:
+                    if frames <= 2:
+                        pyxel.blt(explosion[0], explosion[1], 0, 112, 0, 40, 25, 0)
+                    elif frames <= 4:
+                        pyxel.blt(explosion[0], explosion[1], 0, 152, 0, 40, 32, 0)
+                    elif frames <= 6:
+                        pyxel.blt(explosion[0], explosion[1], 0, 96, 24, 40, 32, 0)
+                    elif frames <= 8:
+                        pyxel.blt(explosion[0], explosion[1], 0, 144, 32, 40, 32, 0)
+                    elif frames <= 10:
+                        pyxel.blt(explosion[0], explosion[1], 0, 100, 64, 40, 32, 0)
+                    elif frames <= 12:
+                        pyxel.blt(explosion[0], explosion[1], 0, 145, 64, 40, 32, 0)
+                    elif frames <= 14:
+                        pyxel.blt(explosion[0], explosion[1], 0, 104, 104, 40, 32, 0)
+                    elif frames == 15:
+                        self.explosionStart.remove(explosion)
+
 
     def minMax(self, num, leftUp):
         if leftUp == True:
@@ -101,12 +155,14 @@ class Rock:
         if hitboxEnds not in self.hitboxes:
             self.hitboxes.append(hitboxEnds)
 
+        self.explosion()
+
 class App: #the whole app
     def __init__(self): #begening
         self.rockRandom = [random.randint(1, 20) for x in range(201)]
         self.screen = 200 #screen size
         pyxel.init(self.screen, self.screen, 'Asteroids') #make screen'
-        pyxel.fullscreen(True)
+        pyxel.fullscreen(False)
         self.x = self.screen / 2 - 8 #add player x and y in middle
         self.y = self.screen / 2 - 8
         self.speed = 2.5 #speed of player
@@ -132,14 +188,16 @@ class App: #the whole app
         self.keyboard = False
         self.coinsTimeCombined = 0
         self.name = ''
-        self.nameDone = False
+        self.explosionStart = []
+        self.nameDone = 'False'
         self.secondCooldown = 30
         self.livesCooldown = 75
         self.coinsTime = 0
+        self.nameOn = False
         self.quarters = [random.randint(0, 50),#cords to make the rocks not spawn
                          random.randint(50, 160),#on the player or off the map
                          random.randint(50, 160),
-                         random.randint(110, 160),
+                         random.randint(115, 160),
                          random.randint(110, 160),
                          random.randint(0, 110),
                          random.randint(0, 110),
@@ -151,10 +209,10 @@ class App: #the whole app
 
 
     def placeRocks(self):
-        rock1 = Rock(self.quarters[0], self.quarters[1], self.hitboxes, self.removedBig, self.removedSmall, self.rockRandom); rock1.placeBigRocks()
-        rock2 = Rock(self.quarters[2], self.quarters[3], self.hitboxes, self.removedBig, self.removedSmall, self.rockRandom); rock2.placeBigRocks()
-        rock3 = Rock(self.quarters[4], self.quarters[5], self.hitboxes, self.removedBig, self.removedSmall, self.rockRandom); rock3.placeBigRocks()
-        rock4 = Rock(self.quarters[6], self.quarters[7], self.hitboxes, self.removedBig, self.removedSmall, self.rockRandom); rock4.placeBigRocks()
+        rock1 = Rock(self.quarters[0], self.quarters[1], self.hitboxes, self.removedBig, self.removedSmall, self.rockRandom, self.explosionStart); rock1.placeBigRocks()
+        rock2 = Rock(self.quarters[2], self.quarters[3], self.hitboxes, self.removedBig, self.removedSmall, self.rockRandom, self.explosionStart); rock2.placeBigRocks()
+        rock3 = Rock(self.quarters[4], self.quarters[5], self.hitboxes, self.removedBig, self.removedSmall, self.rockRandom, self.explosionStart); rock3.placeBigRocks()
+        rock4 = Rock(self.quarters[6], self.quarters[7], self.hitboxes, self.removedBig, self.removedSmall, self.rockRandom, self.explosionStart); rock4.placeBigRocks()
 
     def checkRocks(self):
         for hitbox in self.hitboxes[:]: #check all hitboxes
@@ -165,15 +223,17 @@ class App: #the whole app
                         remove = [hitbox[0] - 4, hitbox[2] + 2]
                         if remove not in self.removedBig:
                             self.removedBig.append(remove)
+                            self.explosionStart.append([hitbox[0], hitbox[2], pyxel.frame_count, False])
                             self.hitboxes.remove(hitbox)
                     else:
                         remove = [hitbox[0] + 2, hitbox[2]]
                         if remove not in self.removedSmall:
                             self.removedSmall.append(remove)
+                            self.explosionStart.append([hitbox[0], hitbox[2], pyxel.frame_count, True])
                             self.hitboxes.remove(hitbox)
                     pyxel.playm(0, False)
                     self.score += 10
-            for middle in [[self.x+8, self.y], [self.x, self.y+8], [self.x+16, self.y+8], [self.x+8, self.y+16]]: #4 points on the player
+            for middle in [[self.x+8, self.y], [self.x, self.y+8], [self.x+16, self.y+8], [self.x+8, self.y+16]]: #4 points on the player to check
                 if middle[0] >= hitbox[0] and middle[0] <= hitbox[1] and middle[1] >= hitbox[2] and middle[1] <= hitbox[3]:
                     if self.lives == 1:
                         self.deadScreen = True
@@ -183,7 +243,7 @@ class App: #the whole app
                         self.y = self.screen / 2 - 8
                         self.flipX = 16
                         self.flipY = 16
-                        self.livesCooldown = 75
+                        self.livesCooldown = 0
                         self.WSAD = 'none'
 
     def showHitboxes(self):
@@ -229,25 +289,26 @@ class App: #the whole app
     def leaderboard(self):
         pyxel.rectb(20, 30, 160, 140, 5)
 
-        with open('leaderboard.txt', 'r') as file:
+        with open('Leaderboard.txt', 'r') as file:
             leaderboard = json.load(file)
-            leaderboard = list(sorted(leaderboard.items(), key=lambda item: item[1]))
+            leaderboard = sorted(leaderboard)
             leaderboard = leaderboard[::-1]
             iter = 1
             for player in leaderboard:
-                pyxel.text(30, iter*7+30, f"#{iter}, {player[0]}'s score: {player[1][0]}, level {player[1][1]}", 5)
+                pyxel.text(30, iter*7+30, f"#{iter}, {player[0]}'s score: {player[1]}, level {player[2]}", 5)
                 iter += 1
 
     def update(self):
         if self.nameDone == True:
             with open('Leaderboard.txt', 'r') as file:
                 leaderboard = json.load(file)
-                if self.name in leaderboard and leaderboard[self.name][0] < self.score:
-                    leaderboard[self.name] = [self.score, self.level]
-                elif self.name not in leaderboard:
-                    leaderboard[self.name] = [self.score, self.level]
-            with open('Leaderboard.txt', 'w') as file:
-                json.dump(leaderboard, file)
+                leaderboard.append([self.name, self.score, self.level])
+                with open('Leaderboard.txt', 'w') as file:
+                    json.dump(leaderboard, file)
+            self.nameDone = False
+            self.nameOn = True
+            return
+        elif self.nameOn == True:
             return
 
         if self.keyboard == True:
@@ -265,7 +326,6 @@ class App: #the whole app
             if pyxel.btnp(pyxel.KEY_SPACE):
                 self.name = self.name + ' '
 
-
         if self.startScreen == True and pyxel.btn(pyxel.KEY_L):
             self.startScreen = False
             self.leaderboardScreen = True
@@ -282,11 +342,11 @@ class App: #the whole app
         if self.startScreen == True:
             return
 
+        self.checkRocks() #check hitboxes
+
         if self.livesCooldown != 0:
             self.livesCooldown -= 1
             return
-
-
 
         if pyxel.btnp(pyxel.KEY_W): #WSAD controls, flips player and modifys wsad to alert 186
             self.y -= self.speed
@@ -330,15 +390,12 @@ class App: #the whole app
         if self.WSAD == 'D':
             self.x += self.speed
 
-
         if self.timer == True: #adds to the timer one second every 30 frames, because its 30FPS
             if self.secondCooldown == 0:
                 self.time += 1
                 self.secondCooldown = 30
             else:
                 self.secondCooldown -= 1
-
-        self.checkRocks() #check hitboxes
 
         if self.x < 0: #for wraparound
             self.x = self.screen-16
@@ -348,8 +405,6 @@ class App: #the whole app
             self.y = self.screen-16
         elif self.y > self.screen-16:
             self.y = 0
-
-
 
         if pyxel.btnp(pyxel.KEY_H): #toggles hitboxes, messager end to 300
             if self.showHitboxesToggle:
@@ -380,8 +435,9 @@ class App: #the whole app
             pyxel.blt(self.screen/2-31, 10, 0, 0, 88, 63, 16)
             pyxel.text(self.screen/2-(len(self.name)+19)*4/2, 185, f"{self.name}'s score: {self.score}, level {self.level}", 5)
 
-            if pyxel.btn(pyxel.KEY_RETURN) or self.nameDone == True:
+            if pyxel.btnp(pyxel.KEY_RETURN) and self.nameOn == False:
                 self.nameDone = True
+            if self.nameOn == True:
                 pyxel.text(self.screen/2-len(text2)*4/2, 175, text2, 5)
             elif self.nameDone == False:
                 pyxel.text(self.screen/2-len(text1)*4/2, 175, text1, 5)
@@ -446,3 +502,4 @@ class App: #the whole app
             pyxel.blt(185, 2, 0, 41, 60, 13, 12)
 
 App() #starts the game
+
