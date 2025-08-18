@@ -1,4 +1,4 @@
-Asteroids retro game made from August 12 - 17.
+Asteroids retro game made from August 12 - 18.
 
 Steps to install:
 
@@ -12,5 +12,6 @@ Ver. beta 0.7 uploaded August 15
 Ver. 1.0 uploaded August 16
 Ver. 1.2 uploaded August 17
 Ver. 1.4 uploaded August 17
+Ver. 1.6 uploaded August 18
 
 
