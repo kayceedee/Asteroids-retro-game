@@ -206,7 +206,20 @@ class App: #the whole app
         pyxel.load('Sprites.pyxres') #load the sprites
         pyxel.run(self.update, self.draw) #start game
 
+    def addBullet(self):
+        bulletX = 0
+        bulletY = 0
 
+        if self.WSAD == 'W':
+            bulletX, bulletY = self.x+7, self.y+2
+        if self.WSAD == 'S':
+            bulletX, bulletY = self.x+7, self.y+14
+        if self.WSAD == 'A':
+            bulletX, bulletY = self.x+2, self.y+7
+        if self.WSAD == 'D':
+            bulletX, bulletY = self.x+14, self.y+7
+
+        self.bullets.append(Bullet(bulletX, bulletY, self.WSAD, self.bulletSpeed, self.screen))
 
     def placeRocks(self):
         rock1 = Rock(self.quarters[0], self.quarters[1], self.hitboxes, self.removedBig, self.removedSmall, self.rockRandom, self.explosionStart); rock1.placeBigRocks()
@@ -233,18 +246,31 @@ class App: #the whole app
                             self.hitboxes.remove(hitbox)
                     pyxel.playm(0, False)
                     self.score += 10
+
             for middle in [[self.x+8, self.y], [self.x, self.y+8], [self.x+16, self.y+8], [self.x+8, self.y+16]]: #4 points on the player to check
                 if middle[0] >= hitbox[0] and middle[0] <= hitbox[1] and middle[1] >= hitbox[2] and middle[1] <= hitbox[3]:
-                    if self.lives == 1:
-                        self.deadScreen = True
-                    else:
-                        self.lives -= 1
-                        self.x = self.screen / 2 - 8
-                        self.y = self.screen / 2 - 8
-                        self.flipX = 16
-                        self.flipY = 16
-                        self.livesCooldown = 0
-                        self.WSAD = 'none'
+                    self.livesSetup()
+
+                if self.bullets != []:
+                    if bullet.x >= self.x and bullet.x <= self.x+15:
+                        if bullet.y >= self.y and bullet.y <= self.y+15:
+                            self.livesSetup()
+                            self.bullets.remove(bullet)
+
+
+    def livesSetup(self):
+        self.explosionStart.append([self.x, self.y, pyxel.frame_count, True])
+
+        if self.lives == 1:
+            self.deadScreen = True
+        else:
+            self.lives -= 1
+            self.x = self.screen / 2 - 8
+            self.y = self.screen / 2 - 8
+            self.flipX = 16
+            self.flipY = 16
+            self.livesCooldown = 75
+            self.WSAD = 'none'
 
     def showHitboxes(self):
         for hitbox in self.hitboxes:
@@ -291,11 +317,9 @@ class App: #the whole app
 
         with open('Leaderboard.txt', 'r') as file:
             leaderboard = json.load(file)
-            leaderboard = sorted(leaderboard)
-            leaderboard = leaderboard[::-1]
             iter = 1
             for player in leaderboard:
-                pyxel.text(30, iter*7+30, f"#{iter}, {player[0]}'s score: {player[1]}, level {player[2]}", 5)
+                pyxel.text(30, iter*7+28, f"#{iter}, {player[0]}'s score: {player[1]}, level {player[2]}", 5)
                 iter += 1
 
     def update(self):
@@ -304,6 +328,8 @@ class App: #the whole app
                 leaderboard = json.load(file)
                 leaderboard.append([self.name, self.score, self.level])
                 with open('Leaderboard.txt', 'w') as file:
+                    leaderboard = sorted(leaderboard, key=lambda game: game[1])[::-1]
+                    leaderboard = leaderboard[0:19] if len(leaderboard) > 19 else leaderboard
                     json.dump(leaderboard, file)
             self.nameDone = False
             self.nameOn = True
@@ -311,7 +337,7 @@ class App: #the whole app
         elif self.nameOn == True:
             return
 
-        if self.keyboard == True:
+        if self.keyboard == True and len(self.name) < 18:
             for key in range(ord('a'), ord('z')+1):
                 if pyxel.btnp(key):
                     if pyxel.btn(pyxel.KEY_SHIFT):
@@ -421,7 +447,8 @@ class App: #the whole app
             self.restart()
 
         if pyxel.btnp(pyxel.MOUSE_BUTTON_LEFT) or pyxel.btnp(pyxel.KEY_UP) or pyxel.btnp(pyxel.KEY_SPACE): #shooting logic
-            self.bullets.append(Bullet(self.x+7, self.y+7, self.WSAD, self.bulletSpeed, self.screen))
+            if self.WSAD != 'none':
+                self.addBullet()
 
     def draw(self):
         pyxel.cls(0) #clear the screen for the new frame
@@ -502,4 +529,3 @@ class App: #the whole app
             pyxel.blt(185, 2, 0, 41, 60, 13, 12)
 
 App() #starts the game
-
