@@ -162,7 +162,7 @@ class App: #the whole app
         self.rockRandom = [random.randint(1, 20) for x in range(201)]
         self.screen = 200 #screen size
         pyxel.init(self.screen, self.screen, 'Asteroids') #make screen'
-        pyxel.fullscreen(False)
+        pyxel.fullscreen(True)
         self.x = self.screen / 2 - 8 #add player x and y in middle
         self.y = self.screen / 2 - 8
         self.speed = 2.5 #speed of player
@@ -529,3 +529,4 @@ class App: #the whole app
             pyxel.blt(185, 2, 0, 41, 60, 13, 12)
 
 App() #starts the game
+
